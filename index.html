@@ -1533,7 +1533,7 @@ IMAGE_FILES.forEach(src=>{
 });
 
 /* ---------- Flower field (Fibonacci sphere around the viewer, so rotation never leaves gaps) ---------- */
-const NF=W<700?1900:2100,fx=new Float32Array(NF),fy=new Float32Array(NF),fz=new Float32Array(NF),fs=new Float32Array(NF),fd=new Float32Array(NF),fr=new Float32Array(NF),fw=new Float32Array(NF),fp=new Uint8Array(NF),Z=new Float32Array(NF),SX=new Float32Array(NF),SY=new Float32Array(NF),SZ=new Float32Array(NF);
+const NF=W<700?1900:2050,fx=new Float32Array(NF),fy=new Float32Array(NF),fz=new Float32Array(NF),fs=new Float32Array(NF),fd=new Float32Array(NF),fr=new Float32Array(NF),fw=new Float32Array(NF),fp=new Uint8Array(NF),Z=new Float32Array(NF),SX=new Float32Array(NF),SY=new Float32Array(NF),SZ=new Float32Array(NF);
 for(let i=0;i<NF;i++){
   const y=1-2*(i+.5)/NF,r=Math.sqrt(1-y*y),th=i*2.399963+rnd()*.15,dist=380+rnd()*900;
   fx[i]=r*Math.cos(th)*dist;fy[i]=y*dist;fz[i]=r*Math.sin(th)*dist;
