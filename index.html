@@ -1416,34 +1416,130 @@ function rnd(){return Math.random()}
 const ND=280,dx=[],dy=[],dz=[],dsz=[],dc=[];
 for(let i=0;i<ND;i++){const y=rnd()*2-1,r=Math.sqrt(1-y*y),th=rnd()*TAU,d=150+rnd()*1200;dx.push(r*Math.cos(th)*d);dy.push(y*d);dz.push(r*Math.sin(th)*d);dsz.push(.8+rnd()*1.9);dc.push(rnd()<.3?'255,120,170':'255,255,255')}
 
-/* ---------- Flower sprites ---------- */
-function petal(g,len,w,c1,c2){
+/* ---------- Flower sprites: nhiều loại hoa ---------- */
+const S=320;
+function mk(draw){const c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d');g.translate(S/2,S/2);draw(g);return c}
+function fillGrad(g,len,c1,c2){const gr=g.createRadialGradient(0,-len*.08,len*.04,0,-len*.55,len*.75);gr.addColorStop(0,c1);gr.addColorStop(1,c2);return gr}
+function finish(g,len,edge){g.strokeStyle=edge||'rgba(120,20,60,.3)';g.lineWidth=1.5;g.stroke();g.beginPath();g.moveTo(0,-len*.15);g.lineTo(0,-len*.75);g.strokeStyle='rgba(255,255,255,.25)';g.stroke()}
+/* cánh bầu (hoa nhiều lớp / hoa nhỏ 5 cánh) */
+function petal(g,len,w,c1,c2,edge){
   g.beginPath();g.moveTo(0,0);g.bezierCurveTo(-w,-len*.3,-w*.8,-len*.95,0,-len);g.bezierCurveTo(w*.8,-len*.95,w,-len*.3,0,0);
-  const gr=g.createRadialGradient(0,-len*.08,len*.04,0,-len*.55,len*.75);gr.addColorStop(0,c1);gr.addColorStop(1,c2);
-  g.fillStyle=gr;g.fill();g.strokeStyle='rgba(130,10,70,.35)';g.lineWidth=1.5;g.stroke();
-  g.beginPath();g.moveTo(0,-len*.15);g.lineTo(0,-len*.78);g.strokeStyle='rgba(255,255,255,.28)';g.stroke();
+  g.fillStyle=fillGrad(g,len,c1,c2);g.fill();finish(g,len,edge);
 }
-function sprite(c1,c2){
-  const S=320,c=document.createElement('canvas');c.width=c.height=S;const g=c.getContext('2d');g.translate(S/2,S/2);
+/* cánh nhọn (sen, hướng dương, cúc) */
+function pointed(g,len,w,c1,c2,edge){
+  g.beginPath();g.moveTo(0,0);g.quadraticCurveTo(-w,-len*.55,0,-len);g.quadraticCurveTo(w,-len*.55,0,0);
+  g.fillStyle=fillGrad(g,len,c1,c2);g.fill();finish(g,len,edge);
+}
+/* cánh xẻ khía (anh đào) */
+function notched(g,len,w,c1,c2,edge){
+  g.beginPath();g.moveTo(0,0);g.bezierCurveTo(-w*1.1,-len*.25,-w,-len*.95,-w*.2,-len);g.lineTo(0,-len*.88);g.lineTo(w*.2,-len);g.bezierCurveTo(w,-len*.95,w*1.1,-len*.25,0,0);
+  g.fillStyle=fillGrad(g,len,c1,c2);g.fill();finish(g,len,edge);
+}
+function ring(g,n,off,fn){for(let i=0;i<n;i++){g.save();g.rotate((i+off)*TAU/n);fn();g.restore()}}
+function disc(g,r,c1,c2){const cg=g.createRadialGradient(0,0,1,0,0,r);cg.addColorStop(0,c1);cg.addColorStop(1,c2);g.fillStyle=cg;g.beginPath();g.arc(0,0,r,0,TAU);g.fill()}
+function dots(g,n,R,r,col){g.fillStyle=col;for(let i=0;i<n;i++){const a=i*TAU/n;g.beginPath();g.arc(Math.cos(a)*R,Math.sin(a)*R,r,0,TAU);g.fill()}}
+
+/* 1. Hoa nhiều lớp (kiểu cũ) */
+function layered(c1,c2){return mk(g=>{
   g.shadowColor='rgba(90,0,50,.45)';g.shadowBlur=10;
-  for(let i=0;i<7;i++){g.save();g.rotate(i*TAU/7);petal(g,150,58,c1,c2);g.restore()}
-  g.shadowBlur=6;
-  for(let i=0;i<7;i++){g.save();g.rotate((i+.5)*TAU/7);petal(g,100,40,c1,c2);g.restore()}
-  g.shadowBlur=0;
-  const cg=g.createRadialGradient(0,0,2,0,0,24);cg.addColorStop(0,'#fff3b0');cg.addColorStop(1,'#f2a favorite'.slice(0,0)+'#f2a93b');
-  g.fillStyle=cg;g.beginPath();g.arc(0,0,24,0,TAU);g.fill();
-  g.fillStyle='#c9731a';for(let i=0;i<9;i++){const a=i*TAU/9;g.beginPath();g.arc(Math.cos(a)*13,Math.sin(a)*13,2.2,0,TAU);g.fill()}
-  return c;
-}
+  ring(g,7,0,()=>petal(g,150,58,c1,c2));
+  g.shadowBlur=6;ring(g,7,.5,()=>petal(g,100,40,c1,c2));
+  g.shadowBlur=0;disc(g,24,'#fff3b0','#f2a93b');dots(g,9,13,2.2,'#c9731a');
+})}
+/* 2. Hoa cúc */
+function daisy(c1,c2,mid){return mk(g=>{
+  g.shadowColor='rgba(60,0,40,.35)';g.shadowBlur=8;
+  ring(g,18,0,()=>pointed(g,152,26,c1,c2,'rgba(90,60,70,.25)'));
+  ring(g,18,.5,()=>pointed(g,128,24,c1,c2,'rgba(90,60,70,.25)'));
+  g.shadowBlur=0;disc(g,30,'#fff2a0',mid);dots(g,12,17,2,'rgba(140,80,0,.55)');
+})}
+/* 3. Hoa anh đào */
+function sakura(c1,c2){return mk(g=>{
+  g.shadowColor='rgba(90,0,50,.4)';g.shadowBlur=10;
+  ring(g,5,0,()=>notched(g,150,62,c1,c2));
+  g.shadowBlur=0;disc(g,16,'#ffd0dc','#e0457b');
+  g.strokeStyle='#c2185b';g.lineWidth=2;
+  for(let i=0;i<10;i++){const a=i*TAU/10;g.beginPath();g.moveTo(0,0);g.lineTo(Math.cos(a)*38,Math.sin(a)*38);g.stroke();g.fillStyle='#ffe082';g.beginPath();g.arc(Math.cos(a)*38,Math.sin(a)*38,3.2,0,TAU);g.fill()}
+})}
+/* 4. Hoa sen */
+function lotus(c1,c2){return mk(g=>{
+  g.shadowColor='rgba(90,0,50,.4)';g.shadowBlur=10;
+  ring(g,8,0,()=>pointed(g,152,48,c1,c2));
+  g.shadowBlur=6;ring(g,8,.5,()=>pointed(g,122,44,c1,c2));
+  ring(g,6,0,()=>pointed(g,88,36,c1,c2));
+  g.shadowBlur=0;disc(g,22,'#fff59d','#f9a825');dots(g,8,12,2,'#e65100');
+})}
+/* 5. Hướng dương */
+function sunflower(){return mk(g=>{
+  g.shadowColor='rgba(80,40,0,.4)';g.shadowBlur=8;
+  ring(g,22,0,()=>pointed(g,152,30,'#ffd400','#ff9f00','rgba(120,60,0,.3)'));
+  ring(g,22,.5,()=>pointed(g,130,28,'#ffe34d','#ffb300','rgba(120,60,0,.3)'));
+  g.shadowBlur=0;disc(g,56,'#6d4c41','#3e2723');
+  g.fillStyle='rgba(255,193,7,.55)';
+  for(let i=0;i<110;i++){const r=Math.sqrt(i/110)*50,a=i*2.399963;g.beginPath();g.arc(Math.cos(a)*r,Math.sin(a)*r,2,0,TAU);g.fill()}
+})}
+/* 6. Hoa nhỏ 5 cánh (lưu ly / tím) */
+function small5(c1,c2,mid){return mk(g=>{
+  g.shadowColor='rgba(30,10,80,.4)';g.shadowBlur=8;
+  ring(g,5,0,()=>petal(g,118,62,c1,c2,'rgba(40,30,110,.3)'));
+  g.shadowBlur=0;disc(g,22,'#ffffff',mid);dots(g,6,10,2,'#f9a825');
+})}
+/* 7. Hoa anh túc / thược dược 4–8 cánh bản rộng */
+function poppy(c1,c2,n){return mk(g=>{
+  g.shadowColor='rgba(80,0,0,.45)';g.shadowBlur=10;
+  ring(g,n,0,()=>petal(g,148,n>5?52:84,c1,c2,'rgba(110,0,0,.3)'));
+  g.shadowBlur=0;disc(g,18,'#4e342e','#1b1b1b');
+  g.strokeStyle='#212121';g.lineWidth=1.6;
+  for(let i=0;i<16;i++){const a=i*TAU/16;g.beginPath();g.moveTo(Math.cos(a)*14,Math.sin(a)*14);g.lineTo(Math.cos(a)*34,Math.sin(a)*34);g.stroke();g.fillStyle='#3e2723';g.beginPath();g.arc(Math.cos(a)*34,Math.sin(a)*34,2.6,0,TAU);g.fill()}
+})}
+
 const PAL=[['#e83e84','#ffb3cf'],['#ff7aa8','#ffe3ee'],['#c72a70','#ff8fbd'],['#ff9bb5','#fff0f5'],['#ff6f7d','#ffd3c7'],['#d94a9a','#ffc4e6']];
-const SPR=PAL.map(p=>sprite(p[0],p[1]));
+const SPR=[
+  ...PAL.map(p=>layered(p[0],p[1])),                       // hoa nhiều lớp (hồng)
+  daisy('#ffffff','#ffe3ee','#f2a93b'),                    // cúc trắng
+  daisy('#ff9bb5','#fff0f5','#f2a93b'),                    // cúc hồng
+  daisy('#ffe066','#fff7c2','#e68a00'),                    // cúc vàng
+  sakura('#ffb7d0','#fff2f7'),sakura('#ff8fb8','#ffe0ec'), // anh đào
+  lotus('#ff7aa8','#fff0f5'),lotus('#ff4f93','#ffc6dc'),   // sen
+  sunflower(),                                             // hướng dương
+  small5('#7b8cff','#e3e7ff','#ffd54f'),                   // lưu ly xanh
+  small5('#b07cff','#efe0ff','#ffd54f'),                   // hoa tím
+  poppy('#e53935','#ff9e80',4),                            // anh túc đỏ
+  poppy('#ff7043','#ffd0b8',8),                            // thược dược cam
+  poppy('#ff5c8a','#ffd1e0',6)                             // cosmos hồng đậm
+];
+
+/* ---------- Ảnh hoa tự thêm (PNG nền trong suốt) ----------
+   Bỏ ảnh vào thư mục "flowers" cạnh index.html rồi ghi tên file vào đây.
+   ONLY_IMAGES = true  -> chỉ dùng ảnh của bạn
+   ONLY_IMAGES = false -> trộn ảnh của bạn với hoa vẽ bằng code */
+const IMAGE_FILES=[
+  'flowers/hong-trang-1.png','flowers/hong-trang-2.png',
+  'flowers/hong-do-1.png','flowers/hong-do-2.png',
+  'flowers/cam-tu-cau-xanh.png','flowers/cam-tu-cau-hong.png',
+  'flowers/ly-1.png','flowers/ly-2.png'
+];
+const ONLY_IMAGES=true;
+let POOL=SPR.slice();const LOADED=[];
+IMAGE_FILES.forEach(src=>{
+  const im=new Image();
+  im.onload=()=>{
+    const IS=512,c=document.createElement('canvas');c.width=c.height=IS;const g=c.getContext('2d');
+    const k=Math.min(IS/im.width,IS/im.height);const w=im.width*k,h=im.height*k;
+    g.drawImage(im,(IS-w)/2,(IS-h)/2,w,h);
+    LOADED.push(c);POOL=ONLY_IMAGES?LOADED.slice():SPR.concat(LOADED);
+  };
+  im.onerror=()=>console.warn('Không tải được ảnh hoa:',src);
+  im.src=src;
+});
 
 /* ---------- Flower field (Fibonacci sphere around the viewer, so rotation never leaves gaps) ---------- */
 const NF=W<700?1200:1600,fx=new Float32Array(NF),fy=new Float32Array(NF),fz=new Float32Array(NF),fs=new Float32Array(NF),fd=new Float32Array(NF),fr=new Float32Array(NF),fw=new Float32Array(NF),fp=new Uint8Array(NF),Z=new Float32Array(NF),SX=new Float32Array(NF),SY=new Float32Array(NF),SZ=new Float32Array(NF);
 for(let i=0;i<NF;i++){
   const y=1-2*(i+.5)/NF,r=Math.sqrt(1-y*y),th=i*2.399963+rnd()*.15,dist=380+rnd()*900;
   fx[i]=r*Math.cos(th)*dist;fy[i]=y*dist;fz[i]=r*Math.sin(th)*dist;
-  fs[i]=dist*0.2*(0.85+rnd()*0.5);fd[i]=rnd()*0.25;fr[i]=rnd()*TAU;fw[i]=(rnd()-.5)*0.4;fp[i]=Math.floor(rnd()*SPR.length);
+  fs[i]=dist*0.2*(0.85+rnd()*0.5);fd[i]=rnd()*0.25;fr[i]=rnd()*TAU;fw[i]=(rnd()<.5?-1:1)*(0.25+rnd()*0.55);fp[i]=Math.floor(rnd()*250);
 }
 
 /* ---------- State ---------- */
@@ -1524,8 +1620,8 @@ function frame(now){if(!running)return;
     }
     vis.sort((m,n)=>Z[n]-Z[m]);
     for(const i of vis){
-      const r=fr[i],c=Math.cos(r)*DPR,s=Math.sin(r)*DPR,sz=SZ[i];
-      ctx.setTransform(c,s,-s,c,SX[i]*DPR,SY[i]*DPR);ctx.drawImage(SPR[fp[i]],-sz/2,-sz/2,sz,sz);
+      const r=fr[i]+fw[i]*t,c=Math.cos(r)*DPR,s=Math.sin(r)*DPR,sz=SZ[i];
+      ctx.setTransform(c,s,-s,c,SX[i]*DPR,SY[i]*DPR);ctx.drawImage(POOL[fp[i]%POOL.length],-sz/2,-sz/2,sz,sz);
     }
     ctx.setTransform(DPR,0,0,DPR,0,0);
   }
