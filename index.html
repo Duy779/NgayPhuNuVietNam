@@ -1368,14 +1368,12 @@ canvas{touch-action:none;cursor:grab;position:fixed;inset:0;width:100%;height:10
             autoplay: false,
         });
         }
-        // gọi khi chuyển từ cảnh hoa sang cảnh bông hồng
+        // gọi khi chuyển từ cảnh hoa sang cảnh tiếp theo.
+        // Đã bỏ cảnh bông hồng + "Tiếp nè": vào thẳng phong thư
+        // (chạy đúng đoạn code mà trước đây chạy khi bấm vào bông hồng).
         window.startRoseScene = function () {
-            document.querySelector('#rose-t').style.display = 'flex';
-            createRoseAnim();
-            roseBegin();
-            lineDrawing.seek(0);
-            lineDrawing.play();
-            window.showClickHint();
+            var r = document.querySelector('#rose-t');
+            if (r && r.onclick) r.onclick();
         };
 
     </script>
@@ -1535,7 +1533,7 @@ IMAGE_FILES.forEach(src=>{
 });
 
 /* ---------- Flower field (Fibonacci sphere around the viewer, so rotation never leaves gaps) ---------- */
-const NF=W<700?1900:2000,fx=new Float32Array(NF),fy=new Float32Array(NF),fz=new Float32Array(NF),fs=new Float32Array(NF),fd=new Float32Array(NF),fr=new Float32Array(NF),fw=new Float32Array(NF),fp=new Uint8Array(NF),Z=new Float32Array(NF),SX=new Float32Array(NF),SY=new Float32Array(NF),SZ=new Float32Array(NF);
+const NF=W<700?1900:2100,fx=new Float32Array(NF),fy=new Float32Array(NF),fz=new Float32Array(NF),fs=new Float32Array(NF),fd=new Float32Array(NF),fr=new Float32Array(NF),fw=new Float32Array(NF),fp=new Uint8Array(NF),Z=new Float32Array(NF),SX=new Float32Array(NF),SY=new Float32Array(NF),SZ=new Float32Array(NF);
 for(let i=0;i<NF;i++){
   const y=1-2*(i+.5)/NF,r=Math.sqrt(1-y*y),th=i*2.399963+rnd()*.15,dist=380+rnd()*900;
   fx[i]=r*Math.cos(th)*dist;fy[i]=y*dist;fz[i]=r*Math.sin(th)*dist;
